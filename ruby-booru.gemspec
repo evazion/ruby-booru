@@ -33,4 +33,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "pry", "~> 0.10"
   spec.add_development_dependency "pry-byebug", "~> 3.4"
   spec.add_development_dependency "minitest", "~> 5.0"
+  spec.add_development_dependency "shoulda", "~> 3.5"
 end
