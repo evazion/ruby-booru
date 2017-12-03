@@ -17,9 +17,13 @@ class Danbooru
   ]
 
   attr_reader :host, :site, :site_params
-  attr_reader *RESOURCES
+  attr_reader(*RESOURCES)
 
-  def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factory: {}, logger: nil)
+  def initialize(host: nil, user: nil, api_key: nil, factory: {}, logger: nil)
+    host ||= ENV["BOORU_HOST"] || "https://danbooru.donmai.us"
+    user ||= ENV["BOORU_USER"]
+    api_key ||= ENV["BOORU_API_KEY"]
+
     @host = Addressable::URI.parse(host)
     @site_params = {
       user: user,
