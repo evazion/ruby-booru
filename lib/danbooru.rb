@@ -16,7 +16,7 @@ class Danbooru
     tags uploads users user_feedbacks wiki_pages wiki_page_versions
   ]
 
-  attr_reader :host, :site, :site_params
+  attr_reader :host, :user, :api_key, :site, :site_params
   attr_reader(*RESOURCES)
 
   def initialize(host: nil, user: nil, api_key: nil, factory: {}, logger: nil)
@@ -24,7 +24,8 @@ class Danbooru
     user ||= ENV["BOORU_USER"]
     api_key ||= ENV["BOORU_API_KEY"]
 
-    @host = Addressable::URI.parse(host)
+    @host, @user, @api_key = Addressable::URI.parse(host), user, api_key
+
     @site_params = {
       user: user,
       password: api_key,
