@@ -1,23 +1,23 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-require 'fumimi/version'
+require 'danbooru/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "fumimi-discord"
-  spec.version       = Fumimi::VERSION
+  spec.name          = "ruby-booru"
+  spec.version       = Danbooru::VERSION
   spec.authors       = ["evazion"]
   spec.email         = ["noizave@gmail.com"]
 
-  spec.summary       = "A Danbooru Discord bot."
-  spec.homepage      = "https://github.com/evazion/fumimi-discord.git"
+  spec.summary       = "A Ruby interface for the Danbooru API."
+  spec.homepage      = "https://github.com/evazion/ruby-booru.git"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
   end
   spec.bindir        = "bin"
-  spec.executables   = %w[fumimi]
+  spec.executables   = %w[danbooru]
   spec.require_paths = ["lib"]
 
   spec.required_ruby_version = '~> 2.4'
@@ -25,14 +25,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "activesupport", "~> 5"
   spec.add_runtime_dependency "dotenv", "~> 2"
   spec.add_runtime_dependency "addressable", "~> 2.5"
-  spec.add_runtime_dependency "google-cloud-bigquery", "~> 0.26"
-  spec.add_runtime_dependency "google-cloud-storage", "~> 1.0"
-  spec.add_runtime_dependency "terminal-table", "~> 1.7"
-  spec.add_runtime_dependency "pg", "~> 0.20"
-  spec.add_runtime_dependency "gli", "~> 2.16"
-  spec.add_runtime_dependency "sequel", "~> 5.2"
-  spec.add_runtime_dependency "sqlite3", "~> 1.3"
-  spec.add_runtime_dependency "bitly", "~> 1.1"
   spec.add_runtime_dependency "rest-client", ">= 2.1.0.rc1", "< 3"
   spec.add_runtime_dependency "dtext_rb", "~> 1.6"
 

@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "danbooru"
+require "dotenv"
+require "pry"
+
+Dotenv.load
+booru = Danbooru.new(logger: Logger.new(STDERR))
+booru.pry

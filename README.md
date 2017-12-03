@@ -1,39 +1,4 @@
-# Fumimi
-
-Fumimi is a Danbooru Discord bot.
-
-## Installation
-
-1. Go to https://discordapp.com/developers/applications/me
-2. Click 'New App'
-3. Choose an app name.
-4. Note your client ID and client secret.
-5. Add a bot user.
-6. Save your bot token.
-7. Invite bot to server.
-
-1. `git clone https://github.com/evazion/fumimi-discord.git`
-2. `bundle install`
-3. Configure `.env`.
-4. Run `bin/fumimi`
-
-#### Big Query
-
-1. https://googlecloudplatform.github.io/google-cloud-ruby/#/docs/google-cloud/v0.28.0/guides/authentication
-2. https://console.developers.google.com/project
-3. Create new project.
-4. Go to API manager.
-5. Find and enable the Big Query API.
-6. Click Credentials in the sidebar.
-7. Create service account and download .json keyfile.
-8. Set GOOGLE_CLOUD_PROJECT in .env.
-9. Set GOOGLE_CLOUD_KEYFILE_CONTENTS in .env.
-
-gcloud auth application-default login
-
-## Usage
-
-Run `bin/fumimi` to start the bot. Use `/help` for a list of commands.
+Ruby-booru is a Ruby interface for the [Danbooru](https://danbooru.donmai.us) API.
 
 ## Development
 
@@ -50,7 +15,7 @@ git commits and tags, and push the `.gem` file to
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at
-https://github.com/evazion/fumimi-discord.
+https://github.com/evazion/ruby-booru.
 
 ## License
 
