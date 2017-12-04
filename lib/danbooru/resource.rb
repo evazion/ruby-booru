@@ -21,9 +21,11 @@ class Danbooru
       { limit: 1000 }
     end
 
-    def search(params = {})
-      params = params.transform_keys { |k| "search[#{k}]" }
-      index(params)
+    def search(**params)
+      params = params.transform_keys { |k| :"search[#{k}]" }
+
+      type = params.has_key?(:"search[order]") ? :page : :id
+      all(by: type, **params)
     end
 
     def index(params = {})
@@ -62,16 +64,40 @@ class Danbooru
       items.select { |i| i.created_at > since }
     end
 
-    def each(**params)
-      return enum_for(:each, **params) unless block_given?
+    def all(**params, &block)
+      each(**params, &block).lazy
+    end
 
-      id = 0
+    def each(by: :id, **params, &block)
+      return enum_for(:each, by: by, **params) unless block_given?
+
+      if by == :id
+        each_by_id(**params, &block)
+      else
+        each_by_page(**params, &block)
+      end
+    end
+
+    def each_by_id(from: 0, to: 100_000_000, **params)
+      n = to
+
       loop do
-        items = index(**params, page: "a#{id}").reverse
-        break if items.empty?
+        items = index(**params, page: "b#{n}")
+        items.select { |item| item.id >= from && item.id < to }
+        items.each { |item| yield item }
 
-        items.each { |i| yield i }
-        id = items.last.id
+        break if items.empty?
+        n = items.last.id
+      end
+    end
+
+    def each_by_page(from: 1, to: 5_000, **params)
+      loop do
+        items = index(**params, page: from)
+        items.each { |item| yield item }
+        from += 1
+
+        break if items.empty? || from > to
       end
     end
 
