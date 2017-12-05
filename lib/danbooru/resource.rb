@@ -110,18 +110,17 @@ class Danbooru
         items.select! { |item| item.id >= from && item.id < to }
         items.each { |item| yield item }
 
-        break if items.empty?
+        return [] if items.empty?
         n = items.last.id
       end
     end
 
     def each_by_page(from: 1, to: 5_000, **params)
-      loop do
+      from.upto(to) do
         items = index(**params, page: from)
         items.each { |item| yield item }
-        from += 1
 
-        break if items.empty? || from > to
+        return [] if items.empty?
       end
     end
 
