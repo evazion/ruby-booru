@@ -1,6 +1,9 @@
 require "active_support"
+require "active_support/concern"
+require "active_support/core_ext/object/inclusion"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/module/concerning"
 require "rest-client"
 require "json"
 
@@ -21,6 +24,42 @@ class Danbooru
       { limit: 1000 }
     end
 
+    concerning :HttpMethods do
+      def backoff(n)
+        backoff = 0.125 * rand(0..(2**min(n, 7) - 1))
+        sleep backoff
+      end
+
+      def http_get(params, retries: 30)
+        0.upto(retries) do |n|
+          begin
+            return self.get(params: params)
+          rescue RestClient::RequestFailed => e
+            if e.response.code.in?([429, 502, 503, 504])
+              backoff(n)
+              redo
+            else
+              return e.response
+            end
+          end
+        end
+      end
+
+      def parse_response(response)
+        data = JSON.parse(response.body)
+
+        if response.code >= 400
+          Danbooru::Model::Error.new(self, data)
+        elsif data.is_a?(Array)
+          data.map { |hash| factory.new(self, hash) }
+        elsif data.is_a?(Hash)
+          factory.new(self, data)
+        else
+          raise NotImplementedError
+        end
+      end
+    end
+
     def search(**params)
       params = params.transform_keys { |k| :"search[#{k}]" }
 
@@ -30,33 +69,18 @@ class Danbooru
 
     def index(params = {})
       params = default_params.merge(params)
-      resp = self.get(params: params)
-
-      data = JSON.parse(resp.body)
-      if data.is_a?(Array)
-        data.map { |hash| factory.new(self, hash) }
-      elsif data.is_a?(Hash)
-        factory.new(self, data)
-      else
-        raise NotImplementedError
-      end
+      resp = self.http_get(params)
+      parse_response(resp)
     end
 
     def show(id)
       resp = self[id].get
-      hash = JSON.parse(resp.body)
-      factory.new(self, hash)
+      parse_response(resp)
     end
 
-    def update!(id, **params)
+    def update(id, **params)
       resp = self[id].put(params)
-
-      if resp.code == 200
-        hash = JSON.parse(resp.body)
-        factory.new(self, hash)
-      else
-        raise Danbooru::Resource::Error.new(resp)
-      end
+      parse_response(resp)
     end
 
     def newest(since, limit = 50)

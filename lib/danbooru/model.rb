@@ -12,8 +12,12 @@ class Danbooru
       super(attributes)
     end
 
-    def update!(**params)
-      api.update!(id, **params)
+    def error?
+      false
+    end
+
+    def update(**params)
+      api.update(id, **params)
     end
 
     def url

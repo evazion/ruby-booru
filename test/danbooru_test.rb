@@ -2,12 +2,12 @@ require 'test_helper'
 require 'danbooru'
 
 class DanbooruTest < ActiveSupport::TestCase
+  setup do
+    @booru = Danbooru.new
+  end
+
   context "Danbooru:" do
     context "Danbooru#initialize" do
-      setup do
-        @booru = Danbooru.new
-      end
-
       should "take default params from the environment" do
         assert_equal(ENV["BOORU_HOST"], @booru.host.to_s)
         assert_equal(ENV["BOORU_USER"], @booru.user)
@@ -22,11 +22,18 @@ class DanbooruTest < ActiveSupport::TestCase
     end
   end
 
-  context "Danbooru#posts:" do
-    setup do
-      @booru = Danbooru.new
-    end
+  context "Danbooru#source:" do
+    context "the #index method" do
+      should "return Danbooru::Model::Error for unsupported sites" do
+        source = @booru.source.index(url: "http://www.example.com")
 
+        assert_kind_of(Danbooru::Model::Error, source)
+        assert_equal(true, source.error?)
+      end
+    end
+  end
+
+  context "Danbooru#posts:" do
     should "work" do
       assert_kind_of(Danbooru::Resource::Posts, @booru.posts)
       assert_equal(Danbooru::Model::Post, @booru.posts.factory)
