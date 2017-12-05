@@ -83,7 +83,7 @@ class Danbooru
 
       loop do
         items = index(**params, page: "b#{n}")
-        items.select { |item| item.id >= from && item.id < to }
+        items.select! { |item| item.id >= from && item.id < to }
         items.each { |item| yield item }
 
         break if items.empty?
