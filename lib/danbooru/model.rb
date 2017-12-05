@@ -25,8 +25,8 @@ class Danbooru
       "#{name} ##{id}"
     end
 
-    def to_json
-      to_h.to_json
+    def as_json(options = {})
+      to_h.transform_values(&:to_s).as_json(options)
     end
 
     protected
