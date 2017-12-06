@@ -69,4 +69,36 @@ class DanbooruTest < ActiveSupport::TestCase
       end
     end
   end
+
+  context "The Enumerable#to_dtext method" do
+    should "work" do
+      data = [
+        { foo: 1, bar: 2 },
+        { foo: 3, bar: 4 },
+      ]
+
+      dtext = <<~DTEXT
+        [table]
+          [thead]
+            [tr]
+              [th] Foo [/th]
+              [th] Bar [/th]
+            [/tr]
+          [/thead]
+          [tbody]
+            [tr]
+              [td] 1 [/td]
+              [td] 2 [/td]
+            [/tr]
+            [tr]
+              [td] 3 [/td]
+              [td] 4 [/td]
+            [/tr]
+          [/tbody]
+        [/table]
+      DTEXT
+
+      assert_equal(dtext, data.to_dtext)
+    end
+  end
 end
