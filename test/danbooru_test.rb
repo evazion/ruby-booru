@@ -24,11 +24,12 @@ class DanbooruTest < ActiveSupport::TestCase
 
   context "Danbooru#source:" do
     context "the #index method" do
-      should "return Danbooru::Model::Error for unsupported sites" do
+      should "return an error for unsupported sites" do
         source = @booru.source.index(url: "http://www.example.com")
 
-        assert_kind_of(Danbooru::Model::Error, source)
-        assert_equal(true, source.error?)
+        assert_kind_of(Danbooru::Response, source)
+        assert_equal(true, source.failed?)
+        assert_equal("400 Bad Request: Unsupported site", source.error)
       end
     end
   end
@@ -64,7 +65,9 @@ class DanbooruTest < ActiveSupport::TestCase
       should "work" do
         post = @booru.posts.show(1)
 
-        assert_kind_of(Danbooru::Model::Post, post)
+        assert_kind_of(Danbooru::Response, post)
+        assert_kind_of(Danbooru::Model::Post, post.model)
+        assert_equal(false, post.failed?)
         assert_equal("d34e4cf0a437a5d65f8e82b7bcd02606", post.md5)
       end
     end

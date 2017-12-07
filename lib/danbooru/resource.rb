@@ -44,20 +44,6 @@ class Danbooru
           end
         end
       end
-
-      def parse_response(response)
-        data = JSON.parse(response.body)
-
-        if response.code >= 400
-          Danbooru::Model::Error.new(self, data)
-        elsif data.is_a?(Array)
-          data.map { |hash| factory.new(self, hash) }
-        elsif data.is_a?(Hash)
-          factory.new(self, data)
-        else
-          raise NotImplementedError
-        end
-      end
     end
 
     def search(**params)
@@ -70,17 +56,17 @@ class Danbooru
     def index(params = {})
       params = default_params.merge(params)
       resp = self.http_get(params)
-      parse_response(resp)
+      Danbooru::Response.new(self, resp)
     end
 
     def show(id)
       resp = self[id].get
-      parse_response(resp)
+      Danbooru::Response.new(self, resp)
     end
 
     def update(id, **params)
       resp = self[id].put(params)
-      parse_response(resp)
+      Danbooru::Response.new(self, resp)
     end
 
     def newest(since, limit = 50)
