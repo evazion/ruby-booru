@@ -16,6 +16,12 @@ class Danbooru::HTTP
     @conn = @conn.persistent(url)
   end
 
+  %i[get put post delete].each do |method|
+    define_method(method) do |url, **options|
+      request(method, url, **options)
+    end
+  end
+
   def request(method, url, retries: 30, **options)
     0.upto(retries) do |n|
       response = log_request(method, url, **options)
