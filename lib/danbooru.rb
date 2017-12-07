@@ -51,4 +51,8 @@ class Danbooru
   def ping
     site.ping
   end
+
+  def logged_in?
+    users.index(name: user).response.code == 200
+  end
 end

@@ -26,6 +26,17 @@ class DanbooruTest < ActiveSupport::TestCase
         assert(@booru.ping)
       end
     end
+
+    context "Danbooru#logged_in?" do
+      should "work when logged in" do
+        assert(@booru.logged_in?)
+      end
+
+      should "work when not logged in" do
+        @booru = Danbooru.new(api_key: "wrong")
+        assert_not(@booru.logged_in?)
+      end
+    end
   end
 
   context "Danbooru#source:" do
