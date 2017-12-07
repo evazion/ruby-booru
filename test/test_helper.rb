@@ -7,3 +7,4 @@ require "dotenv"
 Dotenv.load(".env.test", ".env")
 
 require 'minitest/autorun'
+SimpleCov.start
