@@ -4,7 +4,8 @@ require 'bundler'
 Bundler.require(:default, :development)
 
 require "dotenv"
-Dotenv.load(".env.test", ".env")
-
 require 'minitest/autorun'
+require 'mocha/mini_test'
+
+Dotenv.load(".env.test", ".env")
 SimpleCov.start
