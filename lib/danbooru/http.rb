@@ -10,7 +10,7 @@ class Danbooru::HTTP
     @conn = HTTP.basic_auth(user: user, pass: pass)
     @conn = @conn.accept("application/json")
     @conn = @conn.timeout(:global, read: 60, write: 60, connect: 60)
-    @conn = @conn.use(:auto_inflate)
+    @conn = @conn.use(:auto_inflate).headers("Accept-Encoding": "gzip")
     @conn = @conn.follow
     @conn = @conn.nodelay
     @conn = @conn.persistent(url)
