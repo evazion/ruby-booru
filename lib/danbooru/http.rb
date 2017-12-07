@@ -1,4 +1,5 @@
 require "active_support"
+require "active_support/core_ext/object/blank"
 require "active_support/core_ext/object/inclusion"
 require "http"
 
@@ -7,7 +8,9 @@ class Danbooru::HTTP
 
   def initialize(url, user: nil, pass: nil, log: Logger.new(nil))
     @log = log
-    @conn = HTTP.basic_auth(user: user, pass: pass)
+
+    @conn = HTTP::Client.new
+    @conn = @conn.basic_auth(user: user, pass: pass) if user.present? && pass.present?
     @conn = @conn.accept("application/json")
     @conn = @conn.timeout(:global, read: 60, write: 60, connect: 60)
     @conn = @conn.use(:auto_inflate).headers("Accept-Encoding": "gzip")
