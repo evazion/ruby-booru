@@ -10,7 +10,7 @@ class Danbooru
     attr_accessor :booru, :factory, :url
 
     def initialize(url = "/", booru:, factory: Danbooru::Model)
-      @booru, @factory, @url = booru, factory, url
+      @booru, @factory, @url = booru, factory, booru.host.to_s + url
     end
 
     def default_params
