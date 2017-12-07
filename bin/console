@@ -6,5 +6,6 @@ require "dotenv"
 require "pry"
 
 Dotenv.load
-booru = Danbooru.new(logger: Logger.new(STDERR))
+logger = Logger.new(STDERR)
+booru = Danbooru.new(logger: logger)
 booru.pry
