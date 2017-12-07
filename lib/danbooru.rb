@@ -15,8 +15,14 @@ class Danbooru
     tags uploads users user_feedbacks wiki_pages wiki_page_versions
   ]
 
+  RESOURCES.each do |name|
+    define_method(name) do
+      instance_variable_set("@#{name}", build_resource(name)) unless instance_variable_defined?("@#{name}")
+      instance_variable_get("@#{name}")
+    end
+  end
+
   attr_reader :http, :host, :user, :api_key
-  attr_reader(*RESOURCES)
 
   def initialize(host: nil, user: nil, api_key: nil, factory: {}, logger: nil)
     host ||= ENV["BOORU_HOST"] || "https://danbooru.donmai.us"
@@ -25,18 +31,7 @@ class Danbooru
 
     @host, @user, @api_key = Addressable::URI.parse(host), user, api_key
     @http = Danbooru::HTTP.new(host, user: user, pass: api_key)
-
-    RESOURCES.each do |name|
-      resource_name = name.to_s.camelize
-      model_name = name.to_s.singularize.camelize
-      resource_class = "Danbooru::Resource::#{resource_name}".safe_constantize || Danbooru::Resource
-      factory_class = factory[name] || "Danbooru::Model::#{model_name}".safe_constantize || Danbooru::Model
-      url = "/" + name.to_s
-
-      # @posts = Danbooru::Resource::Post(url, booru: self, factory: Danbooru::Model::Post, **site_params)
-      resource = resource_class.new(url, booru: self, factory: factory_class)
-      instance_variable_set("@#{name}", resource)
-    end
+    @factory = factory
   end
 
   def ping
@@ -44,6 +39,18 @@ class Danbooru
   end
 
   def logged_in?
-    users.index(name: user).response.code == 200
+    users.index(name: user).succeeded?
+  end
+
+  private
+  def build_resource(name)
+    resource_name = name.to_s.camelize
+    model_name = name.to_s.singularize.camelize
+    resource_class = "Danbooru::Resource::#{resource_name}".safe_constantize || Danbooru::Resource
+    factory_class = @factory[name] || "Danbooru::Model::#{model_name}".safe_constantize || Danbooru::Model
+    url = "/" + name.to_s
+
+    # Danbooru::Resource::Post(url, booru: self, factory: Danbooru::Model::Post)
+    resource_class.new(url, booru: self, factory: factory_class)
   end
 end
