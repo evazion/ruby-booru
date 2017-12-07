@@ -4,6 +4,7 @@ require "active_support/core_ext/object/inclusion"
 require "http"
 
 class Danbooru::HTTP
+  RETRY_CODES = [429, 502, 503, 504]
   attr_reader :conn
 
   def initialize(url, user: nil, pass: nil, log: Logger.new(nil))
@@ -25,17 +26,18 @@ class Danbooru::HTTP
     end
   end
 
-  def request(method, url, retries: 30, **options)
-    0.upto(retries) do |n|
-      response = log_request(method, url, **options)
+  def request(method, url, retries: 30, retry_codes: RETRY_CODES, **options)
+    response = log_request(method, url, **options)
 
-      if response.code.in?([429, 502, 503, 504]) && retries > 0
-        backoff(n)
-        redo
-      else
-        return response
-      end
+    n = 0
+    while n < retries && response.code.in?(retry_codes)
+      response.flush
+      backoff(n)
+      response = log_request(method, url, **options)
+      n += 1
     end
+
+    response
   end
 
   private
@@ -55,7 +57,8 @@ class Danbooru::HTTP
   end
 
   def backoff(n)
-    backoff = rand(0.0 .. 2**min(n, 3))
+    max = 2 ** [n, 3].min
+    backoff = rand(0.0..max)
     sleep backoff
   end
 end

@@ -33,6 +33,43 @@ class DanbooruTest < ActiveSupport::TestCase
     end
   end
 
+  context "Danbooru::HTTP" do
+    should "work without authentication" do
+      response = Danbooru::HTTP.new(@booru.host).get("/post_versions")
+
+      assert_equal(403, response.code)
+      assert_nothing_raised { JSON.parse(response.body) }
+    end
+
+    should "work with authentication" do
+      response = Danbooru::HTTP.new(@booru.host, user: @booru.user, pass: @booru.api_key).get("/post_versions")
+
+      assert_equal(200, response.code)
+      assert_nothing_raised { JSON.parse(response.body) }
+    end
+
+    should "log debug info" do
+      @io = StringIO.new
+      @logger = Logger.new(@io, level: :debug)
+
+      response = Danbooru::HTTP.new(@booru.host, log: @logger).get("/")
+      assert_match(%r!200 OK: GET!, @io.string)
+    end
+
+    should "retry on failure until success" do
+      http = Danbooru::HTTP.new(@booru.host)
+
+      mock_resp = mock
+      mock_resp.stubs(:flush)
+      mock_resp.stubs(:code).returns(429, 429, 200)
+      http.conn.expects(:request).times(3).returns(mock_resp)
+      http.expects(:sleep).times(2)
+
+      response = http.get("/", retries: 3)
+      assert_equal(200, response.code)
+    end
+  end
+
   context "Danbooru#source:" do
     context "the #index method" do
       should "return an error for unsupported sites" do
