@@ -13,12 +13,6 @@ class DanbooruTest < ActiveSupport::TestCase
         assert_equal(ENV["BOORU_USER"], @booru.user)
         assert_equal(ENV["BOORU_API_KEY"], @booru.api_key)
       end
-
-      should "initialize the site" do
-        assert_equal(@booru.host.to_s, @booru.site.url)
-        assert_equal(@booru.user, @booru.site.options[:user])
-        assert_equal(@booru.api_key, @booru.site.options[:password])
-      end
     end
 
     context "Danbooru#ping" do

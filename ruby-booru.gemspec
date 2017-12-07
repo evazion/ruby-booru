@@ -25,8 +25,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "activesupport", "~> 5"
   spec.add_runtime_dependency "dotenv", "~> 2"
   spec.add_runtime_dependency "addressable", "~> 2.5"
-  spec.add_runtime_dependency "rest-client", ">= 2.1.0.rc1", "< 3"
   spec.add_runtime_dependency "dtext_rb", "~> 1.6"
+  spec.add_runtime_dependency "http", "~> 3"
 
   spec.add_development_dependency "bundler", "~> 1.14"
   spec.add_development_dependency "rake", "~> 12.0"

@@ -1,7 +1,6 @@
 require "active_support"
 require "active_support/core_ext/string/inflections"
 require "addressable/uri"
-require "rest-client"
 
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
 
@@ -16,7 +15,7 @@ class Danbooru
     tags uploads users user_feedbacks wiki_pages wiki_page_versions
   ]
 
-  attr_reader :host, :user, :api_key, :site, :site_params
+  attr_reader :http, :host, :user, :api_key
   attr_reader(*RESOURCES)
 
   def initialize(host: nil, user: nil, api_key: nil, factory: {}, logger: nil)
@@ -25,31 +24,23 @@ class Danbooru
     api_key ||= ENV["BOORU_API_KEY"]
 
     @host, @user, @api_key = Addressable::URI.parse(host), user, api_key
-
-    @site_params = {
-      user: user,
-      password: api_key,
-      headers: { accept: :json },
-      log: logger,
-    }
-
-    @site = Danbooru::Resource.new(host, site_params.merge(booru: self))
+    @http = Danbooru::HTTP.new(host, user: user, pass: api_key)
 
     RESOURCES.each do |name|
       resource_name = name.to_s.camelize
       model_name = name.to_s.singularize.camelize
       resource_class = "Danbooru::Resource::#{resource_name}".safe_constantize || Danbooru::Resource
       factory_class = factory[name] || "Danbooru::Model::#{model_name}".safe_constantize || Danbooru::Model
-      url = host + "/" + name.to_s
+      url = "/" + name.to_s
 
       # @posts = Danbooru::Resource::Post(url, booru: self, factory: Danbooru::Model::Post, **site_params)
-      resource = resource_class.new(url, site_params.merge(booru: self, factory: factory_class))
+      resource = resource_class.new(url, booru: self, factory: factory_class)
       instance_variable_set("@#{name}", resource)
     end
   end
 
   def ping
-    site.ping
+    posts.ping
   end
 
   def logged_in?

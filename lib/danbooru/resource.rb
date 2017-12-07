@@ -1,49 +1,20 @@
 require "active_support"
-require "active_support/concern"
-require "active_support/core_ext/object/inclusion"
-require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/module/concerning"
-require "rest-client"
 require "json"
 
 require "danbooru/model"
 
 class Danbooru
-  class Resource < RestClient::Resource
+  class Resource
     class Error < StandardError; end
-    attr_accessor :booru, :factory
+    attr_accessor :booru, :factory, :url
 
-    def initialize(url, options = {})
-      @booru = options[:booru]
-      @factory = options[:factory] || Danbooru::Model
-      super(url, options)
+    def initialize(url = "/", booru:, factory: Danbooru::Model)
+      @booru, @factory, @url = booru, factory, url
     end
 
     def default_params
       { limit: 1000 }
-    end
-
-    concerning :HttpMethods do
-      def backoff(n)
-        backoff = 0.125 * rand(0..(2**min(n, 7) - 1))
-        sleep backoff
-      end
-
-      def http_get(params = {}, retries: 30)
-        0.upto(retries) do |n|
-          begin
-            return self.get(params: params)
-          rescue RestClient::RequestFailed => e
-            if e.response.code.in?([429, 502, 503, 504]) && n > 0
-              backoff(n)
-              redo
-            else
-              return e.response
-            end
-          end
-        end
-      end
     end
 
     def search(**params)
@@ -54,18 +25,17 @@ class Danbooru
     end
 
     def index(params = {}, options = {})
-      params = default_params.merge(params)
-      resp = self.http_get(params, **options)
+      resp = booru.http.request(:get, url, params: default_params.merge(params), **options)
       Danbooru::Response.new(self, resp)
     end
 
-    def show(id)
-      resp = self[id].get
+    def show(id, params = {}, options = {})
+      resp = booru.http.request(:get, url + "/#{id}", params: default_params.merge(params), **options)
       Danbooru::Response.new(self, resp)
     end
 
     def update(id, **params)
-      resp = self[id].put(params)
+      resp = booru.http.request(:put, url, **options)
       Danbooru::Response.new(self, resp)
     end
 

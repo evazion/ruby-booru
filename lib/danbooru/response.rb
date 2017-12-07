@@ -24,7 +24,7 @@ class Danbooru
     def error
       return nil unless failed?
 
-      "#{response.code} #{RestClient::STATUSES[response.code]}: #{message}"
+      "#{response.status}: #{message}"
     end
 
     def failed?
