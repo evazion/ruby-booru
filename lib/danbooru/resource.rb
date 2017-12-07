@@ -34,8 +34,8 @@ class Danbooru
       Danbooru::Response.new(self, resp)
     end
 
-    def update(id, **params)
-      resp = booru.http.request(:put, url, **options)
+    def update(id, params = {}, options = {})
+      resp = booru.http.request(:put, url + "/#{id}", json: params, **options)
       Danbooru::Response.new(self, resp)
     end
 

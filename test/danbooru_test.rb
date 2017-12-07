@@ -82,6 +82,16 @@ class DanbooruTest < ActiveSupport::TestCase
         assert_equal("d34e4cf0a437a5d65f8e82b7bcd02606", post.md5)
       end
     end
+
+    context "the #update method" do
+      should "work" do
+        post = @booru.posts.update(1, post: { rating: "e" })
+        assert_equal("e", post.rating)
+
+        post = @booru.posts.update(1, post: { rating: "s" })
+        assert_equal("s", post.rating)
+      end
+    end
   end
 
   context "The Enumerable#to_dtext method" do

@@ -16,8 +16,8 @@ class Danbooru
       false
     end
 
-    def update(**params)
-      api.update(id, **params)
+    def update(params = {}, options = {})
+      api.update(id, params, options)
     end
 
     def url

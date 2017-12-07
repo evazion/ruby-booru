@@ -15,9 +15,9 @@ class Danbooru::HTTP
     @conn = @conn.persistent(url)
   end
 
-  def request(method = :get, url = "/", params: {}, retries: 30)
+  def request(method, url, retries: 30, **options)
     0.upto(retries) do |n|
-      response = conn.request(method, url, params: params)
+      response = conn.request(method, url, **options)
 
       if response.code.in?([429, 502, 503, 504]) && retries > 0
         backoff(n)
