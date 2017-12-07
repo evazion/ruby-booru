@@ -17,26 +17,28 @@ class Danbooru
       { limit: 1000 }
     end
 
+    def request(method, path = "/", **options)
+      resp = booru.http.request(method, url + path, **options)
+      Danbooru::Response.new(self, resp)
+    end
+
+    def index(params = {}, options = {})
+      request(:get, "/", params: default_params.merge(params), **options)
+    end
+
+    def show(id, params = {}, options = {})
+      request(:get, "/#{id}", params: default_params.merge(params), **options)
+    end
+
+    def update(id, params = {}, options = {})
+      request(:put, "/#{id}", json: params, **options)
+    end
+
     def search(**params)
       params = params.transform_keys { |k| :"search[#{k}]" }
 
       type = params.has_key?(:"search[order]") ? :page : :id
       all(by: type, **params)
-    end
-
-    def index(params = {}, options = {})
-      resp = booru.http.request(:get, url, params: default_params.merge(params), **options)
-      Danbooru::Response.new(self, resp)
-    end
-
-    def show(id, params = {}, options = {})
-      resp = booru.http.request(:get, url + "/#{id}", params: default_params.merge(params), **options)
-      Danbooru::Response.new(self, resp)
-    end
-
-    def update(id, params = {}, options = {})
-      resp = booru.http.request(:put, url + "/#{id}", json: params, **options)
-      Danbooru::Response.new(self, resp)
     end
 
     def newest(since, limit = 50)
@@ -45,7 +47,7 @@ class Danbooru
     end
 
     def ping
-      index({ limit: 1 }, retries: 0).succeeded?
+      request(:get, "/", retries: 0).succeeded?
     end
 
     def all(**params, &block)
