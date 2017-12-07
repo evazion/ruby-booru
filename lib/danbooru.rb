@@ -47,4 +47,8 @@ class Danbooru
       instance_variable_set("@#{name}", resource)
     end
   end
+
+  def ping
+    site.ping
+  end
 end

@@ -30,12 +30,12 @@ class Danbooru
         sleep backoff
       end
 
-      def http_get(params, retries: 30)
+      def http_get(params = {}, retries: 30)
         0.upto(retries) do |n|
           begin
             return self.get(params: params)
           rescue RestClient::RequestFailed => e
-            if e.response.code.in?([429, 502, 503, 504])
+            if e.response.code.in?([429, 502, 503, 504]) && n > 0
               backoff(n)
               redo
             else
@@ -53,9 +53,9 @@ class Danbooru
       all(by: type, **params)
     end
 
-    def index(params = {})
+    def index(params = {}, options = {})
       params = default_params.merge(params)
-      resp = self.http_get(params)
+      resp = self.http_get(params, **options)
       Danbooru::Response.new(self, resp)
     end
 
@@ -72,6 +72,10 @@ class Danbooru
     def newest(since, limit = 50)
       items = index(limit: limit)
       items.select { |i| i.created_at > since }
+    end
+
+    def ping
+      index({ limit: 1 }, retries: 0).succeeded?
     end
 
     def all(**params, &block)

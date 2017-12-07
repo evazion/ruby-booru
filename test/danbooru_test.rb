@@ -20,6 +20,12 @@ class DanbooruTest < ActiveSupport::TestCase
         assert_equal(@booru.api_key, @booru.site.options[:password])
       end
     end
+
+    context "Danbooru#ping" do
+      should "work" do
+        assert(@booru.ping)
+      end
+    end
   end
 
   context "Danbooru#source:" do
