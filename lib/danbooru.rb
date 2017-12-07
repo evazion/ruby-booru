@@ -5,7 +5,7 @@ require "addressable/uri"
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
 
 class Danbooru
-  RESOURCES = %i[
+  RESOURCES = %w[
     artist_commentaries artist_commentary_versions artists artist_versions bans
     bulk_update_requests comments comment_votes counts delayed_jobs dmails
     dtext_previews favorite_groups favorites forum_posts forum_topics ip_bans
@@ -22,7 +22,7 @@ class Danbooru
     end
   end
 
-  attr_reader :http, :host, :user, :api_key
+  attr_reader :http, :host, :user, :api_key, :factory
 
   def initialize(host: nil, user: nil, api_key: nil, factory: {}, logger: nil)
     host ||= ENV["BOORU_HOST"] || "https://danbooru.donmai.us"
@@ -44,13 +44,7 @@ class Danbooru
 
   private
   def build_resource(name)
-    resource_name = name.to_s.camelize
-    model_name = name.to_s.singularize.camelize
-    resource_class = "Danbooru::Resource::#{resource_name}".safe_constantize || Danbooru::Resource
-    factory_class = @factory[name] || "Danbooru::Model::#{model_name}".safe_constantize || Danbooru::Model
-    url = "/" + name.to_s
-
-    # Danbooru::Resource::Post(url, booru: self, factory: Danbooru::Model::Post)
-    resource_class.new(url, booru: self, factory: factory_class)
+    resource_class = "Danbooru::Resource::#{name.camelize}".safe_constantize || Danbooru::Resource
+    resource_class.new(name, self)
   end
 end

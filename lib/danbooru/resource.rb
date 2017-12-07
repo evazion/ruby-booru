@@ -7,10 +7,12 @@ require "danbooru/model"
 class Danbooru
   class Resource
     class Error < StandardError; end
-    attr_accessor :booru, :factory, :url
+    attr_accessor :booru, :name, :url, :factory
 
-    def initialize(url = "/", booru:, factory: Danbooru::Model)
-      @booru, @factory, @url = booru, factory, booru.host.to_s + url
+    def initialize(name, booru)
+      @name = name
+      @booru = booru
+      @url = booru.host.to_s + "/" + name
     end
 
     def default_params

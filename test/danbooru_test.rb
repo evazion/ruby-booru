@@ -85,7 +85,6 @@ class DanbooruTest < ActiveSupport::TestCase
   context "Danbooru#posts:" do
     should "work" do
       assert_kind_of(Danbooru::Resource::Posts, @booru.posts)
-      assert_equal(Danbooru::Model::Post, @booru.posts.factory)
       assert_equal(@booru, @booru.posts.booru)
     end
 
@@ -126,6 +125,20 @@ class DanbooruTest < ActiveSupport::TestCase
         assert_equal("e", post.rating)
 
         post = @booru.posts.update(1, post: { rating: "s" })
+        assert_equal("s", post.rating)
+      end
+    end
+  end
+
+  context "Danbooru::Model:" do
+    context "the #update method" do
+      should "work" do
+        post = @booru.posts.show(1)
+
+        post.update(rating: "e")
+        assert_equal("e", post.rating)
+
+        post.update(rating: "s")
         assert_equal("s", post.rating)
       end
     end

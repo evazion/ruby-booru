@@ -2,22 +2,18 @@ require "ostruct"
 
 class Danbooru
   class Model < OpenStruct
-    attr_reader :api, :booru
+    attr_reader :api
 
     def initialize(api, attributes)
       @api = api
-      @booru = api.booru
 
       attributes = cast_attributes(attributes)
       super(attributes)
     end
 
-    def error?
-      false
-    end
-
     def update(params = {}, options = {})
-      api.update(id, params, options)
+      model_name = api.name.singularize
+      api.update(id, { model_name => params }, options)
     end
 
     def url
