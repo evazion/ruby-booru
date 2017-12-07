@@ -142,6 +142,21 @@ class DanbooruTest < ActiveSupport::TestCase
         assert_equal("s", post.rating)
       end
     end
+
+    should "have an #url" do
+      assert_match(%r!/posts/1$!, @booru.posts.show(1).url)
+    end
+
+    should "have a #shortlink" do
+      assert_equal("post #1", @booru.posts.show(1).shortlink)
+    end
+
+    should "be converted by #to_json" do
+      post = @booru.posts.show(1)
+      json = JSON.parse(post.to_json)
+
+      assert_equal(1, json["id"])
+    end
   end
 
   context "The Enumerable#to_dtext method" do

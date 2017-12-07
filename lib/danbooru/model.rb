@@ -11,9 +11,12 @@ class Danbooru
       super(attributes)
     end
 
+    def resource_name
+      api.name.singularize
+    end
+
     def update(params = {}, options = {})
-      model_name = api.name.singularize
-      api.update(id, { model_name => params }, options)
+      api.update(id, { resource_name => params }, options)
     end
 
     def url
@@ -21,12 +24,7 @@ class Danbooru
     end
 
     def shortlink
-      name = self.class.name.demodulize.underscore.tr("_", " ")
-      "#{name} ##{id}"
-    end
-
-    def as_json(options = {})
-      to_h.transform_values(&:to_s).as_json(options)
+      "#{resource_name} ##{id}"
     end
 
     protected

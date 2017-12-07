@@ -21,6 +21,10 @@ class Danbooru
       end
     end
 
+    def to_json(options = nil)
+      json.to_json(options)
+    end
+
     def factory
       name = resource.name
       resource.booru.factory[name] || "Danbooru::Model::#{name.singularize.capitalize}".safe_constantize || Danbooru::Model
