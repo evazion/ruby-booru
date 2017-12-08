@@ -80,8 +80,8 @@ class Danbooru
     end
 
     def each_by_page(from: 1, to: 5_000, **params)
-      from.upto(to) do
-        items = index(**params, page: from)
+      from.upto(to) do |n|
+        items = index(**params, page: n)
         items.each { |item| yield item }
 
         return [] if items.empty?
