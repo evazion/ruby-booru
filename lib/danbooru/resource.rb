@@ -87,11 +87,5 @@ class Danbooru
         return [] if items.empty?
       end
     end
-
-    def export(file = STDOUT)
-      each do |model|
-        file.puts model.to_json
-      end
-    end
   end
 end
