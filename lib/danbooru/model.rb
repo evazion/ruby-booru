@@ -1,14 +1,19 @@
+require "active_support"
+require "active_support/core_ext/module/delegation"
 require "ostruct"
 
 class Danbooru
-  class Model < OpenStruct
-    attr_reader :api
+  class Model
+    attr_reader :api, :attributes
+    delegate_missing_to :attributes
 
     def initialize(api, attributes)
       @api = api
+      self.attributes = attributes
+    end
 
-      attributes = cast_attributes(attributes)
-      super(attributes)
+    def attributes=(attributes)
+      @attributes = OpenStruct.new(cast_attributes(attributes.to_h))
     end
 
     def resource_name
@@ -16,7 +21,8 @@ class Danbooru
     end
 
     def update(params = {}, options = {})
-      api.update(id, { resource_name => params }, options)
+      self.attributes = api.update(id, { resource_name => params }, options)
+      self
     end
 
     def url
