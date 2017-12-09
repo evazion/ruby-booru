@@ -5,7 +5,16 @@ require "danbooru"
 require "dotenv"
 require "pry"
 
+class SimpleFormatter < Logger::Formatter
+  def call(severity, time, progname, msg)
+    level = Logger::Severity.const_get(severity)
+    tag = "[#{progname}] " if progname.present?
+
+    "<#{level}> #{tag}#{msg2str(msg)}\n"
+  end
+end
+
 Dotenv.load
-logger = Logger.new(STDERR)
-booru = Danbooru.new(logger: logger)
+logger = Logger.new(STDERR, level: :debug, formatter: SimpleFormatter.new)
+booru = Danbooru.new(log: logger)
 booru.pry
