@@ -46,11 +46,13 @@ class Danbooru::HTTP
     response = conn.request(method, url, **options)
     finish = Time.now.to_f
 
-    @log.debug do
-      runtime = ((response.headers["X-Runtime"].try(&:to_f) || 0) * 1000).to_i
-      elapsed = ((finish - start) * 1000).to_i
+    @log.debug "http" do
+      runtime = ((response.headers["X-Runtime"].try(&:to_f) || 0) * 1000)
+      latency = ((finish - start) * 1000) - runtime
+      socket = response.connection.instance_variable_get("@socket").socket
 
-      "[http] #{response.status}: #{method.upcase} #{response.uri} (#{runtime}ms, +#{elapsed - runtime}ms)"
+      stats = "time=%-6s lag=%-6s ip=%s fd=%i" % ["#{runtime.to_i}ms", "+#{latency.to_i}ms", socket.local_address.inspect_sockaddr, socket.fileno]
+      "#{stats} code=#{response.code} method=#{method.upcase} url=#{response.uri}"
     end
 
     response
