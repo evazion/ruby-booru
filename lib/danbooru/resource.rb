@@ -43,11 +43,6 @@ class Danbooru
       all(by: type, **params)
     end
 
-    def newest(since, limit = 50)
-      items = index(limit: limit)
-      items.select { |i| i.created_at > since }
-    end
-
     def ping
       request(:get, "/", retries: 0).succeeded?
     end
