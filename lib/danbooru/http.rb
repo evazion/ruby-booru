@@ -42,20 +42,30 @@ class Danbooru::HTTP
 
   private
   def log_request(method, url, **options)
+    response, duration = time_request(method, url, **options)
+    log_response(response, method, duration)
+
+    response
+  end
+
+  def time_request(method, url, **options)
     start = Time.now.to_f
     response = conn.request(method, url, **options)
     finish = Time.now.to_f
 
+    duration = finish - start
+    return response, duration
+  end
+
+  def log_response(response, method, duration)
     @log.debug "http" do
-      runtime = ((response.headers["X-Runtime"].try(&:to_f) || 0) * 1000)
-      latency = ((finish - start) * 1000) - runtime
+      runtime = (response.headers["X-Runtime"].try(&:to_f) || 0) * 1000
+      latency = (duration * 1000 - runtime)
       socket = response.connection.instance_variable_get("@socket").socket
 
       stats = "time=%-6s lag=%-6s ip=%s fd=%i" % ["#{runtime.to_i}ms", "+#{latency.to_i}ms", socket.local_address.inspect_sockaddr, socket.fileno]
       "#{stats} code=#{response.code} method=#{method.upcase} url=#{response.uri}"
     end
-
-    response
   end
 
   def backoff(n)
