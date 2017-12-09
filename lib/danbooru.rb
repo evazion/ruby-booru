@@ -22,15 +22,15 @@ class Danbooru
     end
   end
 
-  attr_reader :http, :host, :user, :api_key, :factory
+  attr_reader :http, :host, :user, :api_key, :factory, :log
 
-  def initialize(host: nil, user: nil, api_key: nil, factory: {}, logger: nil)
+  def initialize(host: nil, user: nil, api_key: nil, factory: {}, log: Logger.new(nil))
     host ||= ENV["BOORU_HOST"] || "https://danbooru.donmai.us"
     user ||= ENV["BOORU_USER"]
     api_key ||= ENV["BOORU_API_KEY"]
 
-    @host, @user, @api_key = Addressable::URI.parse(host), user, api_key
-    @http = Danbooru::HTTP.new(host, user: user, pass: api_key)
+    @host, @user, @api_key, @log = Addressable::URI.parse(host), user, api_key, log
+    @http = Danbooru::HTTP.new(host, user: user, pass: api_key, log: log)
     @factory = factory
   end
 
