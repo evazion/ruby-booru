@@ -24,6 +24,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "activesupport", "~> 5"
   spec.add_runtime_dependency "addressable", "~> 2.5"
+  spec.add_runtime_dependency "connection_pool", "~> 2.2"
   spec.add_runtime_dependency "dotenv", "~> 2"
   spec.add_runtime_dependency "dtext_rb", "~> 1.6"
   spec.add_runtime_dependency "http", "~> 3"

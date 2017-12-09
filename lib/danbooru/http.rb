@@ -1,23 +1,20 @@
 require "active_support"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/object/inclusion"
+require "connection_pool"
 require "http"
 
 class Danbooru::HTTP
   RETRY_CODES = [429, 502, 503, 504]
-  attr_reader :conn
 
-  def initialize(url, user: nil, pass: nil, log: Logger.new(nil))
+  def initialize(url, user: nil, pass: nil, connections: 10, timeout: 60, log: Logger.new(nil))
+    @connections = connections
+    @timeout = timeout
     @log = log
 
-    @conn = HTTP::Client.new
-    @conn = @conn.basic_auth(user: user, pass: pass) if user.present? && pass.present?
-    @conn = @conn.accept("application/json")
-    @conn = @conn.timeout(:global, read: 60, write: 60, connect: 60)
-    @conn = @conn.use(:auto_inflate).headers("Accept-Encoding": "gzip")
-    @conn = @conn.follow
-    @conn = @conn.nodelay
-    @conn = @conn.persistent(url)
+    @pool = ConnectionPool.new(size: @connections, timeout: @timeout) do
+      connect(url, user, pass)
+    end
   end
 
   %i[get put post delete].each do |method|
@@ -31,7 +28,6 @@ class Danbooru::HTTP
 
     n = 0
     while n < retries && response.code.in?(retry_codes)
-      response.flush
       backoff(n)
       response = log_request(method, url, **options)
       n += 1
@@ -41,6 +37,18 @@ class Danbooru::HTTP
   end
 
   private
+  def connect(url, user = nil, pass = nil)
+    conn = HTTP::Client.new
+    conn = conn.basic_auth(user: user, pass: pass) if user.present? && pass.present?
+    conn = conn.accept("application/json")
+    conn = conn.timeout(:global, read: 60, write: 60, connect: 60)
+    conn = conn.use(:auto_inflate).headers("Accept-Encoding": "gzip")
+    conn = conn.follow
+    conn = conn.nodelay
+    conn = conn.persistent(url)
+    conn
+  end
+
   def log_request(method, url, **options)
     response, duration = time_request(method, url, **options)
     log_response(response, method, duration)
@@ -49,12 +57,14 @@ class Danbooru::HTTP
   end
 
   def time_request(method, url, **options)
-    start = Time.now.to_f
-    response = conn.request(method, url, **options)
-    finish = Time.now.to_f
+    @pool.with do |conn|
+      start = Time.now.to_f
+      response = conn.request(method, url, **options).flush
+      finish = Time.now.to_f
 
-    duration = finish - start
-    return response, duration
+      duration = finish - start
+      return response, duration
+    end
   end
 
   def log_response(response, method, duration)
