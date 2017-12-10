@@ -70,14 +70,18 @@ class Danbooru
     end
 
     def each_by_id(from: 0, to: 100_000_000, **params)
+      params = default_params.merge(params)
       n = to
 
       loop do
+        params[:limit] = (n - from).clamp(0, params[:limit])
+        return [] if params[:limit] == 0
+
         items = index(**params, page: "b#{n}")
         items.select! { |item| item.id >= from && item.id < to }
         items.each { |item| yield item }
 
-        return [] if items.empty?
+        return items if items.empty? || items.size < params[:limit]
         n = items.last.id
       end
     end
