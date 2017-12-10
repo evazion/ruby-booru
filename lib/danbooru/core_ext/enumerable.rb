@@ -1,4 +1,13 @@
+require "parallel"
+
 module Enumerable
+  def pmap(workers: 2, jobs: 4, &block)
+    subarrays = lazy.each_slice(jobs)
+    subarrays.flat_map do |subarray|
+      Parallel.map(subarray, in_threads: workers, &block)
+    end
+  end
+
   def +(other)
     concat(other)
   end

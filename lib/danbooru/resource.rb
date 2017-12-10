@@ -1,6 +1,5 @@
 require "active_support"
 require "active_support/core_ext/hash/keys"
-require "json"
 
 require "danbooru/model"
 
@@ -55,8 +54,25 @@ class Danbooru
       index(limit: 1, page: "b100000000").first
     end
 
-    def all(**params, &block)
-      each(**params, &block).lazy
+    def partition(size)
+      max = last.id + 1
+
+      endpoints = max.step(0, -size).lazy + [0]
+      subranges = endpoints.each_cons(2)
+      subranges = subranges.map { |upper, lower| [lower, upper] }
+      subranges
+    end
+
+    def all(workers: 10, jobs: 10, size: 1000, **params, &block)
+      subranges = partition(size)
+
+      results = subranges.pmap(workers: workers, jobs: jobs) do |from, to|
+        response = each(from: from, to: to, **params, &block)
+        response.to_a
+      end
+
+      results = results.flat_map(&:itself)
+      results
     end
 
     def each(by: :id, **params, &block)
