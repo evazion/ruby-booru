@@ -47,6 +47,14 @@ class Danbooru
       request(:get, "/", retries: 0).succeeded?
     end
 
+    def first
+      index(limit: 1, page: "a0").first
+    end
+
+    def last
+      index(limit: 1, page: "b100000000").first
+    end
+
     def all(**params, &block)
       each(**params, &block).lazy
     end
