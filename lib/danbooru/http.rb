@@ -72,8 +72,10 @@ class Danbooru::HTTP
       runtime = (response.headers["X-Runtime"].try(&:to_f) || 0) * 1000
       latency = (duration * 1000 - runtime)
       socket = response.connection.instance_variable_get("@socket").socket
+      ip = socket.local_address.inspect_sockaddr rescue nil
+      fd = socket.fileno rescue nil
 
-      stats = "time=%-6s lag=%-6s ip=%s fd=%i" % ["#{runtime.to_i}ms", "+#{latency.to_i}ms", socket.local_address.inspect_sockaddr, socket.fileno]
+      stats = "time=%-6s lag=%-6s ip=%s fd=%s" % ["#{runtime.to_i}ms", "+#{latency.to_i}ms", ip, fd]
       "#{stats} code=#{response.code} method=#{method.upcase} url=#{response.uri}"
     end
   end
