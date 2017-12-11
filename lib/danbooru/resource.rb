@@ -71,9 +71,10 @@ class Danbooru
     def partition(size)
       max = last.id + 1
 
-      endpoints = max.step(0, -size).lazy + [0]
-      subranges = endpoints.each_cons(2)
-      subranges = subranges.map { |upper, lower| [lower, upper] }
+      endpoints = max.step(0, -size).lazy                         # [1000, 900, 800, ..., 100]
+      endpoints = [endpoints, [0]].lazy.flat_map { |e| e.lazy }   # [1000, 900, 800, ..., 100, 0]
+      subranges = endpoints.each_cons(2)                          # [[1000, 900], [900, 800], ..., [100, 0]]
+      subranges = subranges.map { |upper, lower| [lower, upper] } # [[900, 1000], [800, 900], ..., [0, 100]]
       subranges
     end
 

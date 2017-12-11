@@ -22,14 +22,6 @@ module Enumerable
     buffer.each(&block)
   end
 
-  def +(other)
-    concat(other)
-  end
-
-  def concat(*others)
-    [self, *others].flat_map { |e| e.to_a }
-  end
-
   def to_dtext(headers = nil)
     headers ||= [first.to_h.keys.map(&:capitalize)]
     rows = map(&:to_h).map(&:values)
@@ -57,11 +49,5 @@ module Enumerable
       spaces = " " * indent
       "#{spaces}[tr]\n#{cols}#{spaces}[/tr]\n"
     end.reduce("", &:+).chop # join("\n")
-  end
-end
-
-class Enumerator::Lazy
-  def concat(*others)
-    [self, *others].lazy.flat_map { |e| e.lazy }
   end
 end
