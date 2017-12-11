@@ -16,6 +16,10 @@ class Danbooru
   ]
 
   RESOURCES.each do |name|
+    unless Danbooru::Resource.const_defined?(name.camelize)
+      Danbooru::Resource.const_set(name.camelize, Class.new(Danbooru::Resource))
+    end
+
     define_method(name) do
       instance_variable_set("@#{name}", build_resource(name)) unless instance_variable_defined?("@#{name}")
       instance_variable_get("@#{name}")
@@ -43,7 +47,7 @@ class Danbooru
 
   private
   def build_resource(name)
-    resource_class = "Danbooru::Resource::#{name.camelize}".safe_constantize || Danbooru::Resource
+    resource_class = Danbooru::Resource.const_get(name.camelize)
     resource_class.new(name, self)
   end
 end
