@@ -24,10 +24,8 @@ class Danbooru
 
   attr_reader :http, :host, :user, :api_key, :factory, :log
 
-  def initialize(host: nil, user: nil, api_key: nil, factory: {}, log: Logger.new(nil))
-    host ||= ENV["BOORU_HOST"] || "https://danbooru.donmai.us"
-    user ||= ENV["BOORU_USER"]
-    api_key ||= ENV["BOORU_API_KEY"]
+  def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factory: {}, log: Logger.new(nil))
+    host ||= "https://danbooru.donmai.us"
 
     @host, @user, @api_key, @log = Addressable::URI.parse(host), user, api_key, log
     @http = Danbooru::HTTP.new(host, user: user, pass: api_key, log: log)
@@ -39,6 +37,7 @@ class Danbooru
   end
 
   def logged_in?
+    return false unless user.present? && api_key.present?
     users.index(name: user).succeeded?
   end
 
