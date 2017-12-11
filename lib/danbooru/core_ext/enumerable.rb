@@ -1,16 +1,16 @@
 module Enumerable
   # http://www.dogbiscuit.org/mdub/weblog/Tech/Programming/Ruby/MultiThreadedProcessingWithLazyEnumerables
   def pmap(workers: 1, &block)
-    return lazy.map(&block) if workers <= 1
     block = lambda { |x| x } unless block_given?
+    return lazy.map(&block) if workers <= 1
 
     threads = lazy.map { |element| Thread.new { block.call(element) } }
-    values = threads.prefetch(workers - 1).map(&:value)
+    values = threads.prefetch(workers).map(&:value)
     values
   end
 
   def prefetch(size = 0, &block)
-    return enum_for(:prefetch, size, &block) unless block_given?
+    return enum_for(:prefetch, size) unless block_given?
     return each(&block) if size <= 0
 
     buffer = []
