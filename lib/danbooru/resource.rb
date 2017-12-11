@@ -43,7 +43,7 @@ class Danbooru
     end
 
     def ping
-      request(:get, "/", retries: 0).succeeded?
+      request(:get, "/", params: { limit: 0 }, retries: 0).succeeded?
     end
 
     def first
