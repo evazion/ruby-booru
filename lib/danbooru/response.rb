@@ -51,7 +51,7 @@ class Danbooru
     end
 
     def retry?
-      response.code.in?([429, 502, 503, 504]) || timeout?
+      [429, 502, 503, 504].include?(response.code) || timeout?
     end
   end
 end

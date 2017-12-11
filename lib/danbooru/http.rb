@@ -1,17 +1,13 @@
-require "active_support"
-require "active_support/core_ext/object/blank"
-require "active_support/core_ext/object/inclusion"
 require "connection_pool"
 require "http"
 
 class Danbooru::HTTP
-  def initialize(url, user: nil, pass: nil, connections: 10, timeout: 60, log: Logger.new(nil))
-    @connections = connections
-    @timeout = timeout
-    @log = log
+  def initialize(url, user: "", pass: "", connections: 10, timeout: 60, log: Logger.new(nil))
+    @url, @user, @pass = url.to_s.strip, user.to_s.strip, pass.to_s.strip
+    @connections, @timeout, @log = connections, timeout, log
 
     @pool = ConnectionPool.new(size: @connections, timeout: @timeout) do
-      connect(url, user, pass)
+      connect(@url, @user, @pass, @timeout)
     end
   end
 
@@ -29,11 +25,11 @@ class Danbooru::HTTP
   end
 
   private
-  def connect(url, user = nil, pass = nil)
+  def connect(url, user = "", pass = "", timeout = 60)
     conn = HTTP::Client.new
-    conn = conn.basic_auth(user: user, pass: pass) if user.present? && pass.present?
+    conn = conn.basic_auth(user: user, pass: pass) unless user.empty? || pass.empty?
     conn = conn.accept("application/json")
-    conn = conn.timeout(:global, read: 60, write: 60, connect: 60)
+    conn = conn.timeout(:global, read: timeout, write: timeout, connect: timeout)
     conn = conn.use(:auto_inflate).headers("Accept-Encoding": "gzip")
     conn = conn.follow
     conn = conn.nodelay
