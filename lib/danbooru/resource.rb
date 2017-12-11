@@ -1,5 +1,6 @@
 require "active_support"
 require "active_support/core_ext/hash/keys"
+require "retriable"
 
 require "danbooru/model"
 
@@ -18,9 +19,22 @@ class Danbooru
       { limit: 1000 }
     end
 
-    def request(method, path = "/", **options)
-      resp = booru.http.request(method, url + path, **options)
-      Danbooru::Response.new(self, resp)
+    def request(method, path = "/", options = {}, **params)
+      options[:tries] ||= 1_000
+      options[:max_interval] ||= 15
+      options[:max_elapsed_time] ||= 300
+
+      resp = nil
+      Retriable.retriable(on: Danbooru::Response::TemporaryError, **options) do
+        resp = booru.http.request(method, url + path, **params)
+        resp = Danbooru::Response.new(self, resp)
+
+        raise Danbooru::Response::TemporaryError if resp.failed? && resp.retry?
+      end
+    rescue Danbooru::Response::TemporaryError => e
+      resp
+    else
+      resp
     end
 
     def index(params = {}, options = {})

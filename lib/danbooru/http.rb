@@ -5,8 +5,6 @@ require "connection_pool"
 require "http"
 
 class Danbooru::HTTP
-  RETRY_CODES = [429, 502, 503, 504]
-
   def initialize(url, user: nil, pass: nil, connections: 10, timeout: 60, log: Logger.new(nil))
     @connections = connections
     @timeout = timeout
@@ -23,15 +21,9 @@ class Danbooru::HTTP
     end
   end
 
-  def request(method, url, retries: 30, retry_codes: RETRY_CODES, **options)
-    response = log_request(method, url, **options)
-
-    n = 0
-    while n < retries && response.code.in?(retry_codes)
-      backoff(n)
-      response = log_request(method, url, **options)
-      n += 1
-    end
+  def request(method, url, **options)
+    response, duration = time_request(method, url, **options)
+    log_response(response, method, duration)
 
     response
   end
@@ -47,13 +39,6 @@ class Danbooru::HTTP
     conn = conn.nodelay
     conn = conn.persistent(url)
     conn
-  end
-
-  def log_request(method, url, **options)
-    response, duration = time_request(method, url, **options)
-    log_response(response, method, duration)
-
-    response
   end
 
   def time_request(method, url, **options)
@@ -78,11 +63,5 @@ class Danbooru::HTTP
       stats = "time=%-6s lag=%-6s ip=%s fd=%s" % ["#{runtime.to_i}ms", "+#{latency.to_i}ms", ip, fd]
       "#{stats} code=#{response.code} method=#{method.upcase} url=#{response.uri}"
     end
-  end
-
-  def backoff(n)
-    max = 2 ** [n, 3].min
-    backoff = rand(0.0..max)
-    sleep backoff
   end
 end

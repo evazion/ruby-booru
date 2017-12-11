@@ -3,6 +3,8 @@ require "active_support/core_ext/module/delegation"
 
 class Danbooru
   class Response
+    class TemporaryError < StandardError; end
+
     attr_reader :model, :json, :resource, :response
     delegate_missing_to :model
 
@@ -42,6 +44,14 @@ class Danbooru
 
     def succeeded?
       !failed?
+    end
+
+    def timeout?
+      response.code == 500 && message == "ERROR:  canceling statement due to statement timeout\n"
+    end
+
+    def retry?
+      response.code.in?([429, 502, 503, 504]) || timeout?
     end
   end
 end
