@@ -13,22 +13,36 @@ class DanbooruTest < ActiveSupport::TestCase
         assert_equal(ENV["BOORU_USER"], @booru.user)
         assert_equal(ENV["BOORU_API_KEY"], @booru.api_key)
       end
+
+      should "create classes and getters for every resource" do
+        assert_equal(true, @booru.respond_to?(:favorites))
+        assert_kind_of(Danbooru::Resource::Favorites, @booru.send(:favorites))
+      end
     end
 
     context "Danbooru#ping" do
-      should "work" do
+      should "return true if the request succeeds" do
         assert(@booru.ping)
+      end
+
+      should "return false if the request fails" do
+        assert_equal(false, @booru.ping(limit: -100))
       end
     end
 
     context "Danbooru#logged_in?" do
-      should "work when logged in" do
-        assert(@booru.logged_in?)
+      should "return true when logged in" do
+        assert_equal(true, @booru.logged_in?)
       end
 
-      should "work when not logged in" do
+      should "return false when logged in incorrectly" do
         @booru = Danbooru.new(api_key: "wrong")
-        assert_not(@booru.logged_in?)
+        assert_equal(false, @booru.logged_in?)
+      end
+
+      should "return false when not logged in" do
+        @booru = Danbooru.new(api_key: nil)
+        assert_equal(false, @booru.logged_in?)
       end
     end
   end
@@ -48,25 +62,47 @@ class DanbooruTest < ActiveSupport::TestCase
       assert_nothing_raised { JSON.parse(response.body) }
     end
 
+    should "maintain a persistent connection" do
+      http = Danbooru::HTTP.new(@booru.host)
+      response1 = http.get("/")
+      response2 = http.get("/")
+
+      assert_equal(response1.connection.object_id, response2.connection.object_id)
+    end
+
     should "log debug info" do
       @io = StringIO.new
       @logger = Logger.new(@io, level: :debug)
 
       response = Danbooru::HTTP.new(@booru.host, log: @logger).get("/")
-      assert_match(%r!200 OK: GET!, @io.string)
+      assert_match(%r!code=200 method=GET!, @io.string)
     end
+  end
 
-    should "retry on failure until success" do
-      http = Danbooru::HTTP.new(@booru.host)
+  context "Danbooru::Resource:" do
+    context "the #request method" do
+      setup do
+        # XXX resource = Danbooru.new["posts"]
+        @booru = Danbooru.new
+        @resource = Danbooru::Resource.new("posts", @booru)
+      end
 
-      mock_resp = mock
-      mock_resp.stubs(:flush)
-      mock_resp.stubs(:code).returns(429, 429, 200)
-      http.conn.expects(:request).times(3).returns(mock_resp)
-      http.expects(:sleep).times(2)
+      should "work" do
+        response = @resource.request(:get, "/")
+        assert_equal(true, response.succeeded?)
+      end
 
-      response = http.get("/", retries: 3)
-      assert_equal(200, response.code)
+      should "retry on failure until success" do
+        mock_resp = mock
+        mock_resp.stubs(:code).returns(429, 429, 200, 200)
+        mock_resp.stubs(:body).returns("[]", "[]")
+
+        @booru.http.expects(:request).times(2).returns(mock_resp)
+        Retriable.expects(:sleep).times(1)
+
+        response = @resource.request(:get, "/", {}, tries: 2)
+        assert_equal(true, response.succeeded?)
+      end
     end
   end
 
