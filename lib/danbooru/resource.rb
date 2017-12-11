@@ -77,15 +77,16 @@ class Danbooru
       subranges
     end
 
-    def all(workers: 10, jobs: 10, size: 1000, **params, &block)
+    def all(workers: 10, size: 1000, **params, &block)
       subranges = partition(size)
 
-      results = subranges.pmap(workers: workers, jobs: jobs) do |from, to|
-        response = each(from: from, to: to, **params, &block)
+      results = subranges.pmap(workers: workers) do |from, to|
+        response = each(from: from, to: to, **params)
         response.to_a
       end
 
       results = results.flat_map(&:itself)
+      results = results.each(&block)
       results
     end
 

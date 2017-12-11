@@ -1,11 +1,25 @@
-require "parallel"
-
 module Enumerable
-  def pmap(workers: 2, jobs: 4, &block)
-    subarrays = lazy.each_slice(jobs)
-    subarrays.flat_map do |subarray|
-      Parallel.map(subarray, in_threads: workers, &block)
+  # http://www.dogbiscuit.org/mdub/weblog/Tech/Programming/Ruby/MultiThreadedProcessingWithLazyEnumerables
+  def pmap(workers: 1, &block)
+    return lazy.map(&block) if workers <= 1
+    block = lambda { |x| x } unless block_given?
+
+    threads = lazy.map { |element| Thread.new { block.call(element) } }
+    values = threads.prefetch(workers - 1).map(&:value)
+    values
+  end
+
+  def prefetch(size = 0, &block)
+    return enum_for(:prefetch, size, &block) unless block_given?
+    return each(&block) if size <= 0
+
+    buffer = []
+    each_with_index do |element, i|
+      yield buffer.shift if i >= size
+      buffer << element
     end
+
+    buffer.each(&block)
   end
 
   def +(other)
