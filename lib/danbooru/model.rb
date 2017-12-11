@@ -7,13 +7,13 @@ class Danbooru
     attr_reader :api, :attributes
     delegate_missing_to :attributes
 
-    def initialize(api, attributes)
-      @api = api
+    def initialize(attributes, api = nil)
       self.attributes = attributes
+      @api = api
     end
 
     def attributes=(attributes)
-      @attributes = OpenStruct.new(cast_attributes(attributes.to_h))
+      @attributes = cast_attributes(attributes)
     end
 
     def resource_name
@@ -36,17 +36,18 @@ class Danbooru
     protected
 
     def cast_attributes(attributes)
-      attributes.map do |name, value|
+      OpenStruct.new(attributes.map do |name, value|
         [name, cast_attribute(name, value)]
-      end.to_h
+      end.to_h)
     end
 
     def cast_attribute(name, value)
-      case name
-      when /_at$/
+      if name =~ /_at$/
         Time.parse(value) rescue nil
-      when /_url$/
+      elsif name =~ /(^|_)url$/
         Addressable::URI.parse(value)
+      elsif value.is_a?(Array)
+        value.map { |item| Danbooru::Model.new(item, nil) }
       else
         value
       end

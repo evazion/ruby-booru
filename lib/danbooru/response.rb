@@ -13,11 +13,11 @@ class Danbooru
       @json = JSON.parse(response.body)
 
       if failed?
-        @model = Danbooru::Model.new(resource, json)
+        @model = Danbooru::Model.new(json, resource)
       elsif json.is_a?(Array)
-        @model = json.map { |item| factory.new(resource, item) }
+        @model = json.map { |item| factory.new(item, resource) }
       elsif json.is_a?(Hash)
-        @model = factory.new(resource, json)
+        @model = factory.new(json, resource)
       else
         raise RuntimeError.new("Unrecognized response type (#{json.class})")
       end
