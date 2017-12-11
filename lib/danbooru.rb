@@ -36,8 +36,8 @@ class Danbooru
     @factory = factory
   end
 
-  def ping
-    posts.ping
+  def ping(params = {})
+    posts.ping(params)
   end
 
   def logged_in?

@@ -19,7 +19,7 @@ class Danbooru
       { limit: 1000 }
     end
 
-    def request(method, path = "/", options = {}, **params)
+    def request(method, path = "/", params = {}, options = {})
       options[:tries] ||= 1_000
       options[:max_interval] ||= 15
       options[:max_elapsed_time] ||= 300
@@ -38,15 +38,15 @@ class Danbooru
     end
 
     def index(params = {}, options = {})
-      request(:get, "/", params: default_params.merge(params), **options)
+      request(:get, "/", { params: default_params.merge(params) }, options)
     end
 
     def show(id, params = {}, options = {})
-      request(:get, "/#{id}", params: default_params.merge(params), **options)
+      request(:get, "/#{id}", { params: default_params.merge(params) }, options)
     end
 
     def update(id, params = {}, options = {})
-      request(:put, "/#{id}", json: params, **options)
+      request(:put, "/#{id}", { json: params }, options)
     end
 
     def search(**params)
@@ -56,8 +56,8 @@ class Danbooru
       all(by: type, **params)
     end
 
-    def ping
-      request(:get, "/", params: { limit: 0 }, retries: 0).succeeded?
+    def ping(params = {})
+      request(:get, "/", { params: { limit: 0 }.merge(params) }, tries: 1).succeeded?
     end
 
     def first
