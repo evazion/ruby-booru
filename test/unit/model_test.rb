@@ -30,9 +30,11 @@ class DanbooruModelTest < ActiveSupport::TestCase
     should "be converted by #to_json" do
       response = @booru.artists.show(1)
       artist = response.model
-
       json = JSON.parse(artist.to_json)
+
+      assert_equal(response.json, artist.as_json.deep_stringify_keys)
       assert_equal(response.to_json, artist.to_json)
+
       assert_equal(1, json["id"])
       assert_match(/\Ahttp:/, json["urls"][0]["url"])
     end
