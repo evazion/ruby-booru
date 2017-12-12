@@ -51,3 +51,17 @@ module Enumerable
     end.reduce("", &:+).chop # join("\n")
   end
 end
+
+class Enumerator::Lazy
+  # https://stackoverflow.com/questions/20751856/how-to-stop-iteration-in-a-enumeratorlazy-method
+  def take_until
+    raise ArgumentError, "Enumerator::Lazy#take_until requires a block" unless block_given?
+
+    Enumerator.new do |consumer|
+      each do |value|
+        consumer << value
+        break if yield value
+      end
+    end.lazy
+  end
+end
