@@ -7,16 +7,13 @@ require "danbooru/model"
 class Danbooru
   class Resource
     class Error < StandardError; end
-    attr_accessor :booru, :name, :url, :factory
+    attr_reader :booru, :name, :url, :factory, :default_params
 
-    def initialize(name, booru)
+    def initialize(name, booru, url: nil, default_params: {})
       @name = name
       @booru = booru
-      @url = booru.url.to_s + "/" + name
-    end
-
-    def default_params
-      { limit: 1000 }
+      @url = booru.url.to_s + "/" + (url || name)
+      @default_params = { limit: 1000 }.merge(default_params)
     end
 
     def request(method, path = "/", params = {}, options = {})

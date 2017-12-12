@@ -5,16 +5,52 @@ require "addressable/uri"
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
 
 class Danbooru
-  RESOURCES = %w[
-    artist_commentaries artist_commentary_versions artists artist_versions bans
-    bulk_update_requests comments comment_votes counts delayed_jobs dmails
-    dtext_previews favorite_groups favorites forum_posts forum_topics ip_bans
-    iqdb_queries mod_actions notes note_previews note_versions pools
-    pool_versions posts post_appeals post_flags post_replacements post_versions
-    post_votes related_tags saved_searches source tag_aliases tag_implications
-    tags uploads users user_feedbacks wiki_pages wiki_page_versions
-  ]
+  RESOURCES = {
+    "ArtistCommentaries" => {},
+    "ArtistCommentaryVersions" => {},
+    "Artists" => {},
+    "ArtistVersions" => {},
+    "Bans" => {},
+    "BulkUpdateRequests" => {},
+    "Comments" => { default_params: { group_by: "comment" } },
+    "CommentVotes" => {},
+    "Counts" => { url: "counts/posts", default_params: { limit: nil } },
+    "DelayedJobs" => {},
+    "Dmails" => {},
+    "DtextPreviews" => {},
+    "FavoriteGroups" => {},
+    "Favorites" => {},
+    "ForumPosts" => {},
+    "ForumTopics" => {},
+    "IpBans" => {},
+    "IqdbQueries" => {},
+    "ModActions" => {},
+    "Notes" => {},
+    "NotePreviews" => {},
+    "NoteVersions" => {},
+    "Pools" => {},
+    "PoolVersions" => {},
+    "Posts" => { default_params: { limit: 200 } },
+    "PostAppeals" => {},
+    "PostFlags" => {},
+    "PostReplacements" => {},
+    "PostVersions" => {},
+    "PostVotes" => {},
+    "RelatedTags" => {},
+    "SavedSearches" => {},
+    "Source" => {},
+    "TagAliases" => {},
+    "TagImplications" => {},
+    "Tags" => { default_params: { "search[hide_empty]": "no" } },
+    "Uploads" => {},
+    "Users" => {},
+    "UserFeedbacks" => {},
+    "WikiPages" => {},
+    "WikiPageVersions" => {},
+  }
+end
 
+class Danbooru
   attr_reader :url, :user, :api_key, :log, :http, :resources, :factory
 
   def initialize(url: ENV["BOORU_URL"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factory: {}, log: Logger.new(nil))
@@ -35,13 +71,16 @@ class Danbooru
   end
 
   def [](name)
-    resources[name.camelize] ||= Resource.const_get(name.camelize).new(name, self)
+    name = name.to_s.camelize
+
+    raise ArgumentError, "invalid resource name '#{name}'" unless RESOURCES.has_key?(name)
+    resources[name] ||= Resource.const_get(name).new(name.underscore, self, **RESOURCES[name])
   end
 
-  RESOURCES.each do |name|
-    Resource.const_set(name.camelize, Class.new(Resource)) unless Resource.const_defined?(name.camelize)
+  RESOURCES.keys.each do |name|
+    Resource.const_set(name, Class.new(Resource)) unless Resource.const_defined?(name)
 
-    define_method(name) do
+    define_method(name.underscore) do
       self[name]
     end
   end
