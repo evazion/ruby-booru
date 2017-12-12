@@ -10,7 +10,6 @@ class Danbooru
 
     def initialize(resource, response)
       @resource, @response = resource, response
-      @json = JSON.parse(response.body)
 
       if failed?
         @model = Danbooru::Model.new(json, resource)
@@ -21,6 +20,14 @@ class Danbooru
       else
         raise RuntimeError.new("Unrecognized response type (#{json.class})")
       end
+    end
+
+    def json
+      @json ||=
+        case @response.mime_type
+          when "application/json" then JSON.parse(@response.body)
+          else { message: "ERROR: non-JSON response (#{@response.mime_type})" }
+        end
     end
 
     def to_json(options = nil)
