@@ -103,6 +103,16 @@ class DanbooruTest < ActiveSupport::TestCase
         response = @resource.request(:get, "/", {}, tries: 2)
         assert_equal(true, response.succeeded?)
       end
+
+      should "return the error response after retries are exhausted" do
+        mock_resp = mock
+        mock_resp.stubs(:code).returns(429)
+        mock_resp.stubs(:body).returns("{}")
+        @booru.http.expects(:request).times(3).returns(mock_resp)
+
+        response = @resource.request(:get, "/", {}, tries: 3)
+        assert_equal(true, response.failed?)
+      end
     end
   end
 
@@ -122,6 +132,12 @@ class DanbooruTest < ActiveSupport::TestCase
     should "work" do
       assert_kind_of(Danbooru::Resource::Posts, @booru.posts)
       assert_equal(@booru, @booru.posts.booru)
+    end
+
+    context "the #first method" do
+      should "return the first post" do
+        assert_equal(1, @booru.posts.first.id)
+      end
     end
 
     context "the #all method" do
