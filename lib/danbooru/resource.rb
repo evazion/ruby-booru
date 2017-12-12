@@ -12,7 +12,7 @@ class Danbooru
     def initialize(name, booru)
       @name = name
       @booru = booru
-      @url = booru.host.to_s + "/" + name
+      @url = booru.url.to_s + "/" + name
     end
 
     def default_params

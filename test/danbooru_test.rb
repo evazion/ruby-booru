@@ -9,7 +9,7 @@ class DanbooruTest < ActiveSupport::TestCase
   context "Danbooru:" do
     context "Danbooru#initialize" do
       should "take default params from the environment" do
-        assert_equal(ENV["BOORU_HOST"], @booru.host.to_s)
+        assert_equal(ENV["BOORU_URL"], @booru.url.to_s)
         assert_equal(ENV["BOORU_USER"], @booru.user)
         assert_equal(ENV["BOORU_API_KEY"], @booru.api_key)
       end
@@ -49,21 +49,21 @@ class DanbooruTest < ActiveSupport::TestCase
 
   context "Danbooru::HTTP" do
     should "work without authentication" do
-      response = Danbooru::HTTP.new(@booru.host).get("/post_versions")
+      response = Danbooru::HTTP.new(@booru.url).get("/post_versions")
 
       assert_equal(403, response.code)
       assert_nothing_raised { JSON.parse(response.body) }
     end
 
     should "work with authentication" do
-      response = Danbooru::HTTP.new(@booru.host, user: @booru.user, pass: @booru.api_key).get("/post_versions")
+      response = Danbooru::HTTP.new(@booru.url, user: @booru.user, pass: @booru.api_key).get("/post_versions")
 
       assert_equal(200, response.code)
       assert_nothing_raised { JSON.parse(response.body) }
     end
 
     should "maintain a persistent connection" do
-      http = Danbooru::HTTP.new(@booru.host)
+      http = Danbooru::HTTP.new(@booru.url)
       response1 = http.get("/")
       response2 = http.get("/")
 
@@ -74,7 +74,7 @@ class DanbooruTest < ActiveSupport::TestCase
       @io = StringIO.new
       @logger = Logger.new(@io, level: :debug)
 
-      response = Danbooru::HTTP.new(@booru.host, log: @logger).get("/")
+      response = Danbooru::HTTP.new(@booru.url, log: @logger).get("/")
       assert_match(%r!code=200 method=GET!, @io.string)
     end
   end
