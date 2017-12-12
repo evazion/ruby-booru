@@ -98,7 +98,7 @@ class Danbooru
         response.to_a
       end
 
-      results = results.take_until { |items| items.size < params[:limit] }
+      results = results.take_until { |items| items.size < params[:limit] } if by == :page
       results = results.flat_map(&:itself)
       results = results.each(&block)
       results
