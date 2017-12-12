@@ -49,11 +49,9 @@ class Danbooru
       request(:put, "/#{id}", { json: params }, options)
     end
 
-    def search(**params)
+    def search(workers: 2, by: :page, **params)
       params = params.transform_keys { |k| :"search[#{k}]" }
-
-      type = params.has_key?(:"search[order]") ? :page : :id
-      all(by: type, **params)
+      all(workers: workers, by: by, **params)
     end
 
     def ping(params = {})
@@ -68,24 +66,39 @@ class Danbooru
       index(limit: 1, page: "b100000000").first
     end
 
-    def partition(size)
-      max = last.id + 1
+    def partition(by = :id, size = nil)
+      if by == :id
+        max = last.id + 1
+        size ||= 1000
+        partition_by_id(0, max, size)
+      elsif by == :page
+        size ||= 1
+        partition_by_page(1, 5000, size)
+      end
+    end
 
-      endpoints = max.step(0, -size).lazy                         # [1000, 900, 800, ..., 100]
-      endpoints = [endpoints, [0]].lazy.flat_map { |e| e.lazy }   # [1000, 900, 800, ..., 100, 0]
+    def partition_by_id(min = 0, max = 100_000_000, size = 1_000)
+      endpoints = max.step(min, -size).lazy                       # [1000, 900, 800, ..., 100]
+      endpoints = [endpoints, [min]].lazy.flat_map { |e| e.lazy } # [1000, 900, 800, ..., 100, 0]
       subranges = endpoints.each_cons(2)                          # [[1000, 900], [900, 800], ..., [100, 0]]
       subranges = subranges.map { |upper, lower| [lower, upper] } # [[900, 1000], [800, 900], ..., [0, 100]]
       subranges
     end
 
-    def all(workers: 10, size: 1000, **params, &block)
-      subranges = partition(size)
+    def partition_by_page(min = 1, max = 5000, size = 1)
+      min.step(max, size).lazy.each_cons(2)
+    end
+
+    def all(workers: 10, by: :id, size: nil, **params, &block)
+      params = default_params.merge(params)
+      subranges = partition(by, size)
 
       results = subranges.pmap(workers: workers) do |from, to|
-        response = each(from: from, to: to, **params)
+        response = each(by: by, from: from, to: to, **params)
         response.to_a
       end
 
+      results = results.take_until { |items| items.size < params[:limit] }
       results = results.flat_map(&:itself)
       results = results.each(&block)
       results
@@ -119,11 +132,13 @@ class Danbooru
     end
 
     def each_by_page(from: 1, to: 5_000, **params)
-      from.upto(to) do |n|
+      params = default_params.merge(params)
+
+      from.upto(to - 1) do |n|
         items = index(**params, page: n)
         items.each { |item| yield item }
 
-        return [] if items.empty?
+        return items if items.empty? || items.size < params[:limit]
       end
     end
   end

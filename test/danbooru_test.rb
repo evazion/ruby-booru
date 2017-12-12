@@ -128,6 +128,17 @@ class DanbooruTest < ActiveSupport::TestCase
     end
   end
 
+  context "Danbooru#tags:" do
+    context "the #search method" do
+      should "work" do
+        tags = @booru.tags.search(name: "tagme")
+
+        assert_equal(1, tags.count)
+        assert_equal("tagme", tags.first.name)
+      end
+    end
+  end
+
   context "Danbooru#posts:" do
     should "work" do
       assert_kind_of(Danbooru::Resource::Posts, @booru.posts)
