@@ -1,5 +1,6 @@
 require "active_support"
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/json"
 require "ostruct"
 
 class Danbooru
@@ -35,7 +36,9 @@ class Danbooru
     end
 
     def as_json(options = {})
-      attributes.to_h.transform_values(&method(:serialize_attribute))
+      attributes.to_h.transform_values do |value|
+        serialize_attribute(value, options)
+      end
     end
 
     def pretty_print(printer)
@@ -63,16 +66,18 @@ class Danbooru
       end
     end
 
-    def serialize_attribute(value)
+    def serialize_attribute(value, options = {})
       case value
-      when Time, Addressable::URI
+      when Time
+        value.iso8601(3)
+      when Addressable::URI
         value.to_s
       when Danbooru::Model
-        value.as_json
+        value.as_json(options)
       when Array
-        value.map(&method(:serialize_attribute))
+        value.map { |item| serialize_attribute(item, options) }
       else
-        value
+        value.as_json(options)
       end
     end
   end
