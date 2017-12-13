@@ -86,7 +86,7 @@ class Danbooru
       min.step(max, size).lazy.each_cons(2)
     end
 
-    def all(workers: 10, by: :id, size: nil, **params, &block)
+    def all(workers: 10, by: :id, size: nil, dedupe: 1000, **params, &block)
       params = default_params.merge(params)
       subranges = partition(by, size)
 
@@ -97,6 +97,7 @@ class Danbooru
 
       results = results.take_until { |items| items.size < params[:limit] } if by == :page
       results = results.flat_map(&:itself)
+      results = results.dedupe(dedupe) if by == :page
       results = results.each(&block)
       results
     end

@@ -1,4 +1,16 @@
 module Enumerable
+  def dedupe(window)
+    return enum_for(:dedupe, window) unless block_given?
+
+    seen = {}
+    each do |element|
+      yield element unless seen.has_key?(element)
+      seen[element] = true
+
+      seen.shift if seen.size > window
+    end
+  end
+
   # http://www.dogbiscuit.org/mdub/weblog/Tech/Programming/Ruby/MultiThreadedProcessingWithLazyEnumerables
   def pmap(workers: 1, &block)
     block = lambda { |x| x } unless block_given?
