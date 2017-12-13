@@ -23,11 +23,16 @@ class Danbooru
     end
 
     def json
-      @json ||=
-        case @response.mime_type
-          when "application/json" then JSON.parse(@response.body)
-          else { message: "ERROR: non-JSON response (#{@response.mime_type})" }
-        end
+      @json ||= JSON.parse(@response.body)
+    rescue JSON::JSONError => e
+      # On 404 errors, the body is "not found". On 503/504 errors (returned by Cloudflare), the body is HTML.
+      @json ||= {
+        success: false,
+        message: "ERROR: non-JSON response.",
+        code: @response.code,
+        mime_type: @response.mime_type,
+        body: @response.body.to_s,
+      }
     end
 
     def to_json(options = nil)
