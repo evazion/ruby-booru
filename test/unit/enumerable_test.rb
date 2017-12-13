@@ -38,23 +38,23 @@ class DanbooruTest < ActiveSupport::TestCase
 
     should "map over the input correctly" do
       (@input.size + 1).times do |threads|
-        assert_equal(@output, @input.pmap(workers: threads) { |x| x + 1 }.to_a)
-        assert_equal(@output, @input.pmap(workers: threads).map { |x| x + 1 }.to_a)
+        assert_equal(@output, @input.pmap(threads) { |x| x + 1 }.to_a)
+        assert_equal(@output, @input.pmap(threads).map { |x| x + 1 }.to_a)
       end
     end
 
     should "use the requested number of threads" do
-      thread_ids = @input.pmap(workers: 4) { Thread.current.object_id }
+      thread_ids = @input.pmap(4) { Thread.current.object_id }
       assert_equal(4, thread_ids.count)
     end
 
     should "run the threads in parallel" do
-      time = Benchmark.realtime { (0..5).pmap(workers: 5) { sleep 0.1 }.force }
+      time = Benchmark.realtime { (0..5).pmap(5) { sleep 0.1 }.force }
       assert_in_delta(0.1, time, 0.01)
     end
 
     should "stream the output lazily" do
-      assert_equal([3, 2, 1], [3, 2, 1, 0].pmap(workers: 4) { |x| 1/x; x }.take(3).to_a)
+      assert_equal([3, 2, 1], [3, 2, 1, 0].pmap(4) { |x| 1/x; x }.take(3).to_a)
     end
   end
 

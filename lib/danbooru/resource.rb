@@ -90,7 +90,7 @@ class Danbooru
       params = default_params.merge(params)
       subranges = partition(by, size)
 
-      results = subranges.pmap(workers: workers) do |from, to|
+      results = subranges.pmap(workers) do |from, to|
         response = each(by: by, from: from, to: to, **params)
         response.to_a
       end

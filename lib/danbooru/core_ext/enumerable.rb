@@ -12,7 +12,7 @@ module Enumerable
   end
 
   # http://www.dogbiscuit.org/mdub/weblog/Tech/Programming/Ruby/MultiThreadedProcessingWithLazyEnumerables
-  def pmap(workers: 1, &block)
+  def pmap(workers = 1, &block)
     block = lambda { |x| x } unless block_given?
     return lazy.map(&block) if workers <= 1
 
