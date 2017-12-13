@@ -95,7 +95,8 @@ class DanbooruTest < ActiveSupport::TestCase
       should "retry on failure until success" do
         mock_resp = mock
         mock_resp.stubs(:code).returns(429, 429, 200, 200)
-        mock_resp.stubs(:body).returns("[]", "[]")
+        mock_resp.stubs(:body).returns("[]")
+        mock_resp.stubs(:mime_type).returns("application/json")
 
         @booru.http.expects(:request).times(2).returns(mock_resp)
         Retriable.expects(:sleep).times(1)
@@ -108,9 +109,11 @@ class DanbooruTest < ActiveSupport::TestCase
         mock_resp = mock
         mock_resp.stubs(:code).returns(429)
         mock_resp.stubs(:body).returns("{}")
-        @booru.http.expects(:request).times(3).returns(mock_resp)
+        mock_resp.stubs(:mime_type).returns("application/json")
 
+        @booru.http.expects(:request).times(3).returns(mock_resp)
         response = @resource.request(:get, "/", {}, tries: 3)
+
         assert_equal(true, response.failed?)
       end
     end
