@@ -2,6 +2,7 @@ require "active_support"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/json"
 require "ostruct"
+require "pp"
 
 class Danbooru
   class Model
@@ -41,8 +42,9 @@ class Danbooru
       end
     end
 
+    alias_method :inspect, :pretty_inspect
     def pretty_print(printer)
-      printer.pp(attributes.to_h)
+      printer.pp("#<#{self.class.name}:0x#{object_id.to_s(16)}>" => attributes.to_h)
     end
 
     protected

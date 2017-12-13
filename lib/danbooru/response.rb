@@ -1,5 +1,6 @@
 require "active_support"
 require "active_support/core_ext/module/delegation"
+require "pp"
 
 class Danbooru
   class Response
@@ -37,6 +38,11 @@ class Danbooru
 
     def to_json(options = nil)
       json.to_json(options)
+    end
+
+    alias_method :inspect, :pretty_inspect
+    def pretty_print(printer)
+      printer.pp("#<#{self.class.name}:0x#{object_id.to_s(16)}>" => model)
     end
 
     def factory
