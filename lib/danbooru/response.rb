@@ -36,8 +36,8 @@ class Danbooru
       }
     end
 
-    def to_json(options = nil)
-      json.to_json(options)
+    def as_json(options = nil)
+      json
     end
 
     alias_method :inspect, :pretty_inspect
