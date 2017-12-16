@@ -7,7 +7,7 @@ require "danbooru/model"
 class Danbooru
   class Resource
     class Error < StandardError; end
-    attr_reader :booru, :name, :url, :factory, :default_params
+    attr_reader :booru, :name, :url, :default_params
 
     def initialize(name, booru, url: nil, default_params: {})
       @name = name

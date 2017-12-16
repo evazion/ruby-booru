@@ -1,5 +1,6 @@
 require "active_support"
 require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/hash/indifferent_access"
 require "addressable/uri"
 
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
@@ -82,7 +83,7 @@ class Danbooru
 
     @url, @user, @api_key, @log = Addressable::URI.parse(url), user, api_key, log
     @http = Danbooru::HTTP.new(url, user: user, pass: api_key, log: log)
-    @factory, @resources = factory, {}
+    @factory, @resources = factory.with_indifferent_access, {}
   end
 
   def ping(params = {})
