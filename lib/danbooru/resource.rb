@@ -7,21 +7,20 @@ require "danbooru/model"
 class Danbooru
   class Resource
     class Error < StandardError; end
-    attr_reader :booru, :name, :url, :default_params
+    attr_reader :booru, :name, :url, :default_params, :default_options
 
-    def initialize(name, booru, url: nil, default_params: {})
+    def initialize(name, booru, url: nil, default_params: {}, default_options: {})
       @name = name
       @booru = booru
       @url = booru.url.to_s + "/" + (url || name)
       @default_params = { limit: 1000 }.merge(default_params)
+      @default_options = { tries: 1_000, max_interval: 15, max_elapsed_time: 90 }.merge(default_options)
     end
 
     def request(method, path = "/", params = {}, options = {})
-      options[:tries] ||= 1_000
-      options[:max_interval] ||= 15
-      options[:max_elapsed_time] ||= 300
-
+      options = default_options.merge(options)
       resp = nil
+
       Retriable.retriable(on: Danbooru::Response::TemporaryError, **options) do
         resp = booru.http.request(method, url + path, **params)
         resp = Danbooru::Response.new(self, resp)
