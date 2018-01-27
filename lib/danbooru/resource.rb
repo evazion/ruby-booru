@@ -41,6 +41,10 @@ class Danbooru
       request(:get, "/#{id}", { params: default_params.merge(params) }, options)
     end
 
+    def create(params = {}, options = {})
+      request(:post, "/", { json: params }, options)
+    end
+
     def update(id, params = {}, options = {})
       request(:put, "/#{id}", { json: params }, options)
     end
