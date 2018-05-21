@@ -1,5 +1,6 @@
 require "active_support"
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/try"
 require "pp"
 
 class Danbooru
@@ -65,7 +66,7 @@ class Danbooru
     end
 
     def timeout?
-      response.code == 500 && message == "ERROR:  canceling statement due to statement timeout\n"
+      response.code == 500 && model.try(:message) == "ERROR:  canceling statement due to statement timeout\n"
     end
 
     def retry?
