@@ -3,16 +3,24 @@ require "active_support/core_ext/hash/keys"
 require "retriable"
 
 require "danbooru/model"
+require "danbooru/fluent"
 
 class Danbooru
   class Resource
+    include Enumerable
+    extend Fluent
+
     class Error < StandardError; end
-    attr_reader :booru, :name, :url, :default_params, :default_options
+
+    attr_reader :booru, :name, :url, :default_options
+    attr_fluent :by, :threads, :default_params
 
     def initialize(name, booru, url: nil, default_params: {}, default_options: {})
       @name = name
       @booru = booru
       @url = booru.url.to_s + "/" + (url || name)
+      @by = :id
+      @threads = 2
       @default_params = { limit: 1000 }.merge(default_params)
       @default_options = { tries: 1_000, max_interval: 15, max_elapsed_time: 90 }.merge(default_options)
     end
@@ -49,9 +57,9 @@ class Danbooru
       request(:put, "/#{id}", { json: params }, options)
     end
 
-    def search(workers: 2, by: :page, **params)
+    def search(**params)
       params = params.transform_keys { |k| :"search[#{k}]" }
-      all(workers: workers, by: by, **params)
+      self.default_params(params)
     end
 
     def ping(params = {})
@@ -89,12 +97,12 @@ class Danbooru
       min.step(max, size).lazy.each_cons(2)
     end
 
-    def all(workers: 10, by: :id, size: nil, dedupe: 1000, **params, &block)
+    def all(size: nil, dedupe: 1000, **params, &block)
       params = default_params.merge(params)
       subranges = partition(by, size)
 
-      results = subranges.pmap(workers) do |from, to|
-        response = each(by: by, from: from, to: to, **params)
+      results = subranges.pmap(threads) do |from, to|
+        response = each(from: from, to: to, **params)
         response.to_a
       end
 
@@ -105,8 +113,8 @@ class Danbooru
       results
     end
 
-    def each(by: :id, **params, &block)
-      return enum_for(:each, by: by, **params) unless block_given?
+    def each(**params, &block)
+      return enum_for(:each, **params) unless block_given?
 
       if by == :id
         each_by_id(**params, &block)
