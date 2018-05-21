@@ -54,6 +54,7 @@ class Danbooru
     "PoolVersions" => {},
     "Posts" => { default_params: { limit: 200 } },
     "PostAppeals" => {},
+    "PostApprovals" => {},
     "PostEvents" => {},
     "PostFlags" => {},
     "PostReplacements" => {},
