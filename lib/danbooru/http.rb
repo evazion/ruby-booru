@@ -31,7 +31,7 @@ class Danbooru::HTTP
     conn = HTTP::Client.new
     conn = conn.basic_auth(user: user, pass: pass) unless user.empty? || pass.empty?
     conn = conn.accept("application/json")
-    conn = conn.timeout(:global, read: timeout, write: timeout, connect: timeout)
+    #conn = conn.timeout(:global, read: timeout, write: timeout, connect: timeout)
     conn = conn.use(:auto_inflate).headers("Accept-Encoding": "gzip")
     conn = conn.follow
     conn = conn.nodelay

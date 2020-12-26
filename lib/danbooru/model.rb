@@ -58,7 +58,7 @@ class Danbooru
       if name =~ /_at$/
         Time.parse(value) rescue nil
       elsif name =~ /(^|_)url$/
-        Addressable::URI.parse(value)
+        Addressable::URI.parse(value) rescue value
       elsif value.is_a?(Hash)
         Danbooru::Model.new(value, nil)
       elsif value.is_a?(Array)

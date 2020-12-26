@@ -68,7 +68,7 @@ class Danbooru
     "Tags" => { default_params: { "search[hide_empty]": "no" } },
     "Uploads" => {},
     "Users" => {},
-    "UserFeedbacks" => {},
+    "UserFeedback" => { url: "user_feedbacks" },
     "UserNameChangeRequests" => {},
     "UserRevert" => {},
     "WikiPages" => {},

@@ -8,7 +8,8 @@ require "pry"
 class SimpleFormatter < Logger::Formatter
   def call(severity, time, progname, msg)
     level = Logger::Severity.const_get(severity)
-    tag = "[#{progname}] " if progname.present?
+    #tag = "[#{progname}] " if progname.present?
+    tag = ""
 
     "<#{level}> #{tag}#{msg2str(msg)}\n"
   end

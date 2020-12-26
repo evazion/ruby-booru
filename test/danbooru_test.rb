@@ -170,7 +170,7 @@ class DanbooruTest < ActiveSupport::TestCase
     context "the #index method" do
       should "work" do
         post = @booru.posts.index(tags: "id:1").first
-        assert_equal("d34e4cf0a437a5d65f8e82b7bcd02606", post.md5)
+        assert_equal(1, post.id)
       end
     end
 
@@ -181,7 +181,7 @@ class DanbooruTest < ActiveSupport::TestCase
         assert_kind_of(Danbooru::Response, post)
         assert_kind_of(Danbooru::Model::Post, post.model)
         assert_equal(false, post.failed?)
-        assert_equal("d34e4cf0a437a5d65f8e82b7bcd02606", post.md5)
+        assert_equal(1, post.id)
       end
     end
 
